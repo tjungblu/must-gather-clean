@@ -8,14 +8,14 @@ import (
 )
 
 func TestSimpleTrackerHappyPath(t *testing.T) {
-	tracker := NewSimpleTracker()
+	tracker := NewStripedTracker()
 	assert.Equal(t, map[string]string{}, tracker.Report())
 	tracker.AddReplacement("a", "b")
 	assert.Equal(t, map[string]string{"a": "b"}, tracker.Report())
 }
 
 func TestSimpleTrackerGetReplacement(t *testing.T) {
-	tracker := NewSimpleTracker()
+	tracker := NewStripedTracker()
 	tracker.AddReplacement("a", "b")
 	assert.Equal(t, tracker.GenerateIfAbsent("a", "a", nil), "b")
 	assert.Equal(t, tracker.GenerateIfAbsent("c", "c", nil), "")
@@ -25,7 +25,7 @@ func TestSimpleTrackerGetReplacement(t *testing.T) {
 }
 
 func TestReportLeakingBack(t *testing.T) {
-	tracker := NewSimpleTracker()
+	tracker := NewStripedTracker()
 	tracker.AddReplacement("foo", "bar")
 	mapping := tracker.Report()
 	mapping["foo"] = "baz"
@@ -33,7 +33,7 @@ func TestReportLeakingBack(t *testing.T) {
 }
 
 func TestSimpleReporterInitialize(t *testing.T) {
-	tracker := NewSimpleTracker()
+	tracker := NewStripedTracker()
 	tracker.Initialize(map[string]string{"a": "b"})
 	assert.Equal(t, "b", tracker.GenerateIfAbsent("a", "a", nil))
 	assert.Equal(t, "b", tracker.GenerateIfAbsent("a", "a", strings.ToUpper))

@@ -35,7 +35,7 @@ func replace(name string, replacements map[string]string, reporter ReplacementTr
 // passed to it with the value of the key.
 func NewKeywordsObfuscator(replacements map[string]string) Obfuscator {
 	return &keywordsObfuscator{
-		ReplacementTracker: NewSimpleTracker(),
+		ReplacementTracker: NewStripedTracker(),
 		replacements:       replacements,
 	}
 }

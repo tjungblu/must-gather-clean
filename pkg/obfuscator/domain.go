@@ -71,7 +71,7 @@ func NewDomainObfuscator(domains []string) (Obfuscator, error) {
 		patterns[i] = p
 	}
 	return &domainObfuscator{
-		ReplacementTracker: NewSimpleTracker(),
+		ReplacementTracker: NewStripedTracker(),
 		domainPatterns:     patterns,
 		domainMapping:      map[string]string{},
 	}, nil

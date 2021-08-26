@@ -100,7 +100,7 @@ func NewIPObfuscator(replacementType schema.ObfuscateReplacementType) (Obfuscato
 		return nil, fmt.Errorf("unsupported replacement type: %s", replacementType)
 	}
 	return &ipObfuscator{
-		ReplacementTracker: NewSimpleTracker(),
+		ReplacementTracker: NewStripedTracker(),
 		replacements: map[*regexp.Regexp]*ipGenerator{
 			ipv4Pattern: {template: consistentIPv4Template, obfuscated: obfuscatedStaticIPv4},
 			ipv6Pattern: {template: consistentIPv6Template, obfuscated: obfuscatedStaticIPv6},

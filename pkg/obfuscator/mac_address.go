@@ -34,7 +34,7 @@ func NewMacAddressObfuscator() Obfuscator {
 	// the main culprit is the support for squashed MACs like '69806FE67C05', which won't be supported with the below
 	regex := regexp.MustCompile(`([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}`)
 
-	reporter := NewSimpleTracker()
+	reporter := NewStripedTracker()
 	return &macAddressObfuscator{
 		ReplacementTracker: reporter,
 		regex:              regex,

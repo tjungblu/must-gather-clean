@@ -47,6 +47,6 @@ func NewRegexObfuscator(pattern string, replacementLocation schema.ObfuscateTarg
 	return &regexObfuscator{
 		pattern:            regex,
 		location:           replacementLocation,
-		ReplacementTracker: NewSimpleTracker(),
+		ReplacementTracker: NewStripedTracker(),
 	}, nil
 }
