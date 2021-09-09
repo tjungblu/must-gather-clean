@@ -44,20 +44,11 @@ func TestIPObfuscatorStatic(t *testing.T) {
 			},
 		},
 		{
-			name:   "valid ipv6 address",
-			input:  "received request from 2001:db8::ff00:42:8329",
-			output: "received request from xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx",
-			report: map[string]string{
-				"2001:db8::ff00:42:8329": obfuscatedStaticIPv6,
-			},
-		},
-		{
 			name:   "mixed ipv4 and ipv6",
 			input:  "tunneling ::2fa:bf9 as 192.168.1.30",
-			output: "tunneling xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx as xxx.xxx.xxx.xxx",
+			output: "tunneling ::2fa:bf9 as xxx.xxx.xxx.xxx",
 			report: map[string]string{
 				"192.168.1.30": obfuscatedStaticIPv4,
-				"::2fa:bf9":    obfuscatedStaticIPv6,
 			},
 		},
 		{
@@ -111,7 +102,7 @@ func TestIPObfuscatorStatic(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			o, err := NewIPObfuscator(schema.ObfuscateReplacementTypeStatic)
+			o, err := NewIPv4Obfuscator(schema.ObfuscateReplacementTypeStatic)
 			require.NoError(t, err)
 			output := o.Contents(tc.input)
 			assert.Equal(t, tc.output, output)
@@ -130,39 +121,30 @@ func TestIPObfuscatorConsistent(t *testing.T) {
 		{
 			name:   "valid ipv4 address",
 			input:  []string{"received request from 192.168.1.10"},
-			output: []string{"received request from x-ipv4-000001-x"},
-			report: map[string]string{"192.168.1.10": "x-ipv4-000001-x"},
+			output: []string{"received request from x-ipv4-0000000001-x"},
+			report: map[string]string{"192.168.1.10": "x-ipv4-0000000001-x"},
 		},
 		{
 			name:   "ipv4 in words",
 			input:  []string{"calling https://192.168.1.20/metrics for values"},
-			output: []string{"calling https://x-ipv4-000001-x/metrics for values"},
-			report: map[string]string{"192.168.1.20": "x-ipv4-000001-x"},
+			output: []string{"calling https://x-ipv4-0000000001-x/metrics for values"},
+			report: map[string]string{"192.168.1.20": "x-ipv4-0000000001-x"},
 		},
 		{
 			name:   "multiple ipv4s",
 			input:  []string{"received request from 192.168.1.20 proxied through 192.168.1.3"},
-			output: []string{"received request from x-ipv4-000001-x proxied through x-ipv4-000002-x"},
+			output: []string{"received request from x-ipv4-0000000001-x proxied through x-ipv4-0000000002-x"},
 			report: map[string]string{
-				"192.168.1.20": "x-ipv4-000001-x",
-				"192.168.1.3":  "x-ipv4-000002-x",
-			},
-		},
-		{
-			name:   "valid ipv6 address",
-			input:  []string{"received request from 2001:db8::ff00:42:8329"},
-			output: []string{"received request from xxxxxxxxxxxxx-ipv6-000001-xxxxxxxxxxxxx"},
-			report: map[string]string{
-				"2001:db8::ff00:42:8329": "xxxxxxxxxxxxx-ipv6-000001-xxxxxxxxxxxxx",
+				"192.168.1.20": "x-ipv4-0000000001-x",
+				"192.168.1.3":  "x-ipv4-0000000002-x",
 			},
 		},
 		{
 			name:   "mixed ipv4 and ipv6",
 			input:  []string{"tunneling ::2fa:bf9 as 192.168.1.30"},
-			output: []string{"tunneling xxxxxxxxxxxxx-ipv6-000001-xxxxxxxxxxxxx as x-ipv4-000001-x"},
+			output: []string{"tunneling ::2fa:bf9 as x-ipv4-0000000001-x"},
 			report: map[string]string{
-				"192.168.1.30": "x-ipv4-000001-x",
-				"::2fa:bf9":    "xxxxxxxxxxxxx-ipv6-000001-xxxxxxxxxxxxx",
+				"192.168.1.30": "x-ipv4-0000000001-x",
 			},
 		},
 		{
@@ -172,12 +154,12 @@ func TestIPObfuscatorConsistent(t *testing.T) {
 				"received request from 192.168.1.20 for 192.168.1.30",
 			},
 			output: []string{
-				"received request from x-ipv4-000001-x for x-ipv4-000002-x",
-				"received request from x-ipv4-000001-x for x-ipv4-000002-x",
+				"received request from x-ipv4-0000000001-x for x-ipv4-0000000002-x",
+				"received request from x-ipv4-0000000001-x for x-ipv4-0000000002-x",
 			},
 			report: map[string]string{
-				"192.168.1.20": "x-ipv4-000001-x",
-				"192.168.1.30": "x-ipv4-000002-x",
+				"192.168.1.20": "x-ipv4-0000000001-x",
+				"192.168.1.30": "x-ipv4-0000000002-x",
 			},
 		},
 		{
@@ -190,37 +172,37 @@ func TestIPObfuscatorConsistent(t *testing.T) {
 				"received request from 192.168.1.24 for 192.168.1.34",
 			},
 			output: []string{
-				"received request from x-ipv4-000001-x for x-ipv4-000002-x",
-				"received request from x-ipv4-000003-x for x-ipv4-000004-x",
-				"received request from x-ipv4-000005-x for x-ipv4-000006-x",
-				"received request from x-ipv4-000007-x for x-ipv4-000008-x",
-				"received request from x-ipv4-000009-x for x-ipv4-000010-x",
+				"received request from x-ipv4-0000000001-x for x-ipv4-0000000002-x",
+				"received request from x-ipv4-0000000003-x for x-ipv4-0000000004-x",
+				"received request from x-ipv4-0000000005-x for x-ipv4-0000000006-x",
+				"received request from x-ipv4-0000000007-x for x-ipv4-0000000008-x",
+				"received request from x-ipv4-0000000009-x for x-ipv4-0000000010-x",
 			},
 			report: map[string]string{
-				"192.168.1.20": "x-ipv4-000001-x",
-				"192.168.1.21": "x-ipv4-000003-x",
-				"192.168.1.22": "x-ipv4-000005-x",
-				"192.168.1.23": "x-ipv4-000007-x",
-				"192.168.1.24": "x-ipv4-000009-x",
-				"192.168.1.30": "x-ipv4-000002-x",
-				"192.168.1.31": "x-ipv4-000004-x",
-				"192.168.1.32": "x-ipv4-000006-x",
-				"192.168.1.33": "x-ipv4-000008-x",
-				"192.168.1.34": "x-ipv4-000010-x",
+				"192.168.1.20": "x-ipv4-0000000001-x",
+				"192.168.1.21": "x-ipv4-0000000003-x",
+				"192.168.1.22": "x-ipv4-0000000005-x",
+				"192.168.1.23": "x-ipv4-0000000007-x",
+				"192.168.1.24": "x-ipv4-0000000009-x",
+				"192.168.1.30": "x-ipv4-0000000002-x",
+				"192.168.1.31": "x-ipv4-0000000004-x",
+				"192.168.1.32": "x-ipv4-0000000006-x",
+				"192.168.1.33": "x-ipv4-0000000008-x",
+				"192.168.1.34": "x-ipv4-0000000010-x",
 			},
 		},
 		{
 			name:   "standard ipv4 with colons and standard ipv4 with dashes between should map to the same obfuscation value",
 			input:  []string{"obfuscate 10.0.129.220 and 10-0-129-220"},
-			output: []string{"obfuscate x-ipv4-000001-x and x-ipv4-000001-x"},
+			output: []string{"obfuscate x-ipv4-0000000001-x and x-ipv4-0000000001-x"},
 			report: map[string]string{
-				"10.0.129.220": "x-ipv4-000001-x",
-				"10-0-129-220": "x-ipv4-000001-x",
+				"10.0.129.220": "x-ipv4-0000000001-x",
+				"10-0-129-220": "x-ipv4-0000000001-x",
 			},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			o, err := NewIPObfuscator(schema.ObfuscateReplacementTypeConsistent)
+			o, err := NewIPv4Obfuscator(schema.ObfuscateReplacementTypeConsistent)
 			require.NoError(t, err)
 			for i := 0; i < len(tc.input); i++ {
 				assert.Equal(t, tc.output[i], o.Contents(tc.input[i]))
@@ -239,20 +221,20 @@ func TestIPObfuscationInPaths(t *testing.T) {
 		{
 			name:   "installer path",
 			input:  "quay-io-release/namespaces/openshift-kube-apiserver/pods/installer-4-ip-10-0-187-218.ec2.internal/installer-4-ip-10-0-187-218.ec2.internal.yaml",
-			output: "quay-io-release/namespaces/openshift-kube-apiserver/pods/installer-4-ip-x-ipv4-000001-x.ec2.internal/installer-4-ip-x-ipv4-000001-x.ec2.internal.yaml",
+			output: "quay-io-release/namespaces/openshift-kube-apiserver/pods/installer-4-ip-x-ipv4-0000000001-x.ec2.internal/installer-4-ip-x-ipv4-0000000001-x.ec2.internal.yaml",
 		}, {
 			name:   "revision pruner path",
 			input:  "quay-io-release/namespaces/openshift-kube-apiserver/pods/revision-pruner-9-ip-10-0-189-142.ec2.internal/revision-pruner-9-ip-10-0-189-142.ec2.internal.yaml",
-			output: "quay-io-release/namespaces/openshift-kube-apiserver/pods/revision-pruner-9-ip-x-ipv4-000001-x.ec2.internal/revision-pruner-9-ip-x-ipv4-000001-x.ec2.internal.yaml",
+			output: "quay-io-release/namespaces/openshift-kube-apiserver/pods/revision-pruner-9-ip-x-ipv4-0000000001-x.ec2.internal/revision-pruner-9-ip-x-ipv4-0000000001-x.ec2.internal.yaml",
 		},
 		{
 			name:   "etcd pod logs",
 			input:  "quay-io-release/namespaces/openshift-etcd/pods/etcd-ip-10-0-189-142.ec2.internal/etcd/etcd/logs/current.log",
-			output: "quay-io-release/namespaces/openshift-etcd/pods/etcd-ip-x-ipv4-000001-x.ec2.internal/etcd/etcd/logs/current.log",
+			output: "quay-io-release/namespaces/openshift-etcd/pods/etcd-ip-x-ipv4-0000000001-x.ec2.internal/etcd/etcd/logs/current.log",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			o, err := NewIPObfuscator(schema.ObfuscateReplacementTypeConsistent)
+			o, err := NewIPv4Obfuscator(schema.ObfuscateReplacementTypeConsistent)
 			require.NoError(t, err)
 			obfuscated := o.Path(tc.input)
 			assert.Equal(t, tc.output, obfuscated)

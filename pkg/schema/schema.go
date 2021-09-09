@@ -6,6 +6,115 @@ import "fmt"
 import "reflect"
 import "encoding/json"
 
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *OmitType) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_OmitType {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_OmitType, v)
+	}
+	*j = OmitType(v)
+	return nil
+}
+
+type ObfuscateReplacementType string
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *SchemaJsonConfig) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	type Plain SchemaJsonConfig
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	if len(plain.Obfuscate) < 1 {
+		return fmt.Errorf("field %s length: must be >= %d", "obfuscate", 1)
+	}
+	*j = SchemaJsonConfig(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ObfuscateReplacementType) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_ObfuscateReplacementType {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_ObfuscateReplacementType, v)
+	}
+	*j = ObfuscateReplacementType(v)
+	return nil
+}
+
+const ObfuscateReplacementTypeConsistent ObfuscateReplacementType = "Consistent"
+const ObfuscateReplacementTypeStatic ObfuscateReplacementType = "Static"
+
+type ObfuscateTarget string
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Omit) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["type"]; !ok || v == nil {
+		return fmt.Errorf("field type: required")
+	}
+	type Plain Omit
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Omit(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ObfuscateTarget) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_ObfuscateTarget {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_ObfuscateTarget, v)
+	}
+	*j = ObfuscateTarget(v)
+	return nil
+}
+
+// on replacement 'Keywords', this will override a given input string with another
+// output string. On duplicate keys it will use the last defined value as
+// replacement. The input values are matched in a case-sensitive fashion and only
+// as a full words, substrings must be matched using a regex.
+type ObfuscateReplacement map[string]string
+
 type Obfuscate struct {
 	// The list of domains and their subdomains which should be obfuscated in the
 	// output, only used with the type Domain obfuscator.
@@ -33,128 +142,17 @@ type Obfuscate struct {
 	// file contents are obfuscated by default.
 	Target ObfuscateTarget `json:"target,omitempty"`
 
-	// type defines the kind of detection you want to use. For example IP will find IP
-	// addresses, whereas Keywords will find keywords defined in the 'replacement'
-	// mapping. Domain must be used in conjunction with the 'domains' property, that
-	// defines what domains should be obfuscated. MAC currently only supports static
-	// replacement where a detected mac address will be replaced by 'x'. Regex should
-	// be used with the 'regex' property that will define the regex, here the
-	// replacement also will be static by 'x'-ing out the matched string.
+	// type defines the kind of detection you want to use. For example IP will find
+	// IPv4 addresses, whereas Keywords will find keywords defined in the
+	// 'replacement' mapping. Domain must be used in conjunction with the 'domains'
+	// property, that defines what domains should be obfuscated. MAC currently only
+	// supports static replacement where a detected mac address will be replaced by
+	// 'x'. Regex should be used with the 'regex' property that will define the regex,
+	// here the replacement also will be static by 'x'-ing out the matched string.
 	Type ObfuscateType `json:"type"`
 }
 
-// on replacement 'Keywords', this will override a given input string with another
-// output string. On duplicate keys it will use the last defined value as
-// replacement. The input values are matched in a case-sensitive fashion and only
-// as a full words, substrings must be matched using a regex.
-type ObfuscateReplacement map[string]string
-
-type ObfuscateReplacementType string
-
-const ObfuscateReplacementTypeConsistent ObfuscateReplacementType = "Consistent"
-const ObfuscateReplacementTypeStatic ObfuscateReplacementType = "Static"
-
-type ObfuscateTarget string
-
 const ObfuscateTargetAll ObfuscateTarget = "All"
-const ObfuscateTargetFileContents ObfuscateTarget = "FileContents"
-const ObfuscateTargetFilePath ObfuscateTarget = "FilePath"
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *ObfuscateTarget) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_ObfuscateTarget {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_ObfuscateTarget, v)
-	}
-	*j = ObfuscateTarget(v)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Omit) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["type"]; !ok || v == nil {
-		return fmt.Errorf("field type: required")
-	}
-	type Plain Omit
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Omit(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *ObfuscateReplacementType) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_ObfuscateReplacementType {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_ObfuscateReplacementType, v)
-	}
-	*j = ObfuscateReplacementType(v)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *SchemaJsonConfig) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	type Plain SchemaJsonConfig
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	if len(plain.Obfuscate) < 1 {
-		return fmt.Errorf("field %s length: must be >= %d", "obfuscate", 1)
-	}
-	*j = SchemaJsonConfig(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *OmitType) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_OmitType {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_OmitType, v)
-	}
-	*j = OmitType(v)
-	return nil
-}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *ObfuscateType) UnmarshalJSON(b []byte) error {
@@ -176,9 +174,13 @@ func (j *ObfuscateType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+const ObfuscateTargetFileContents ObfuscateTarget = "FileContents"
+const ObfuscateTargetFilePath ObfuscateTarget = "FilePath"
+
 type ObfuscateType string
 
 const ObfuscateTypeDomain ObfuscateType = "Domain"
+const ObfuscateTypeFastIP ObfuscateType = "FastIP"
 const ObfuscateTypeIP ObfuscateType = "IP"
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -205,6 +207,7 @@ func (j *Obfuscate) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+const ObfuscateTypeIPv6 ObfuscateType = "IPv6"
 const ObfuscateTypeKeywords ObfuscateType = "Keywords"
 const ObfuscateTypeMAC ObfuscateType = "MAC"
 const ObfuscateTypeRegex ObfuscateType = "Regex"
@@ -284,6 +287,8 @@ var enumValues_ObfuscateTarget = []interface{}{
 var enumValues_ObfuscateType = []interface{}{
 	"Domain",
 	"IP",
+	"FastIP",
+	"IPv6",
 	"Keywords",
 	"MAC",
 	"Regex",

@@ -12,12 +12,13 @@ type generator struct {
 	template string
 	static   string
 	count    int
+	maxCount int
 }
 
 func (g *generator) generateConsistentReplacement() string {
 	g.count++
-	if g.count > maximumSupportedObfuscations {
-		klog.Exitf("maximum number of obfuscations exceeded: %d", maximumSupportedObfuscations)
+	if g.count > g.maxCount {
+		klog.Exitf("maximum number of obfuscations exceeded: %d", g.maxCount)
 	}
 	r := fmt.Sprintf(g.template, g.count)
 	return r
@@ -28,6 +29,6 @@ func (g *generator) generateStaticReplacement() string {
 }
 
 // newGenerator creates a generator objects and populates with the provided arguments
-func newGenerator(template, static string) *generator {
-	return &generator{template: template, static: static}
+func newGenerator(template, static string, maxCount int) *generator {
+	return &generator{template: template, static: static, count: 0, maxCount: maxCount}
 }

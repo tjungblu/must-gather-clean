@@ -1,6 +1,6 @@
 config:
   obfuscate:
-    - type: IP
+    - type: FastIP
       replacementType: Consistent
       target: All
     - type: MAC

@@ -62,8 +62,22 @@ func Run(configPath string, inputPath string, outputPath string, deleteOutputFol
 			}
 			k = obfuscator.NewTargetObfuscator(o.Target, k)
 			obfuscators = append(obfuscators, k)
+		case schema.ObfuscateTypeFastIP:
+			k, err := obfuscator.NewFastIPv4Obfuscator(o.ReplacementType)
+			if err != nil {
+				return err
+			}
+			k = obfuscator.NewTargetObfuscator(o.Target, k)
+			obfuscators = append(obfuscators, k)
 		case schema.ObfuscateTypeIP:
-			k, err := obfuscator.NewIPObfuscator(o.ReplacementType)
+			k, err := obfuscator.NewIPv4Obfuscator(o.ReplacementType)
+			if err != nil {
+				return err
+			}
+			k = obfuscator.NewTargetObfuscator(o.Target, k)
+			obfuscators = append(obfuscators, k)
+		case schema.ObfuscateTypeIPv6:
+			k, err := obfuscator.NewIPv6Obfuscator(o.ReplacementType)
 			if err != nil {
 				return err
 			}
